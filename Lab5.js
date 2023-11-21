@@ -16,37 +16,30 @@ const todos = [
     { id: 6, title: "Task 6", completed: true },
 ];
 
-
 const Lab5 = (app) => {
-
+    // Update a todo item
     app.put("/a5/todos/:id", (req, res) => {
         const { id } = req.params;
         const todo = todos.find((t) => t.id === parseInt(id));
-        todo.title = req.body.title;
-        todo.description = req.body.description;
-        todo.due = req.body.due;
-        todo.completed = req.body.completed;
+        if (!todo) {
+            return res.status(404).send('Todo not found');
+        }
+        Object.assign(todo, req.body);
         res.sendStatus(200);
     });
 
-
-    app.get("/a5/todos/:id/title/:title", (req, res) => {
-        const { id, title } = req.params;
-        const todo = todos.find((t) => t.id === parseInt(id));
-        todo.title = title;
-        res.json(todos);
-    });
-
-
+    // Delete a todo item
     app.delete("/a5/todos/:id", (req, res) => {
         const { id } = req.params;
-        const todo = todos.find((t) => t.id === parseInt(id));
-        todos.splice(todos.indexOf(todo), 1);
+        const index = todos.findIndex((t) => t.id === parseInt(id));
+        if (index === -1) {
+            return res.status(404).send('Todo not found');
+        }
+        todos.splice(index, 1);
         res.sendStatus(200);
     });
 
-
-
+    // Create a new todo item
     app.post("/a5/todos", (req, res) => {
         const newTodo = {
             ...req.body,
@@ -56,55 +49,31 @@ const Lab5 = (app) => {
         res.json(newTodo);
     });
 
-    app.put("/api/courses/:id", (req, res) => {
-        const { id } = req.params;
-        const course = req.body;
-        Database.courses = Database.courses.map((c) =>
-            c._id === id ? { c, ...course } : c
-        );
-        res.sendStatus(204);
-    });
-
-    app.get("/api/courses/:id", (req, res) => {
-        const { id } = req.params;
-        const course = Database.courses
-            .find((c) => c._id === id);
-        if (!course) {
-            res.status(404).send("Course not found");
-            return;
-        }
-        res.send(course);
-    });
-
-
-
-
-
-
+    // Retrieve all todos or filtered by completion status
     app.get("/a5/todos", (req, res) => {
         const { completed } = req.query;
         if (completed !== undefined) {
-            const completedTodos = todos.filter(
-                (t) => t.completed === completed);
-            res.json(completedTodos);
+            const completedStatus = completed === 'true';
+            const filteredTodos = todos.filter((t) => t.completed === completedStatus);
+            res.json(filteredTodos);
             return;
         }
         res.json(todos);
     });
 
+    // Retrieve a specific todo item by ID
     app.get("/a5/todos/:id", (req, res) => {
         const { id } = req.params;
         const todo = todos.find((t) => t.id === parseInt(id));
+        if (!todo) {
+            return res.status(404).send('Todo not found');
+        }
         res.json(todo);
     });
 
-
+    // Assignment-related endpoints
     app.get("/a5/assignment", (req, res) => {
         res.json(assignment);
-    });
-
-    app.get("/a5/assignment/title", (req, res) => {
-        res.json(assignment.title);
     });
 
     app.get("/a5/assignment/title/:newTitle", (req, res) => {
@@ -113,24 +82,12 @@ const Lab5 = (app) => {
         res.json(assignment);
     });
 
-
-
-
+    // Welcome message
     app.get("/a5/welcome", (req, res) => {
         res.send("Welcome to Assignment 5");
     });
 
-    app.get("/a5/add/:a/:b", (req, res) => {
-        const { a, b } = req.params;
-        const sum = parseInt(a) + parseInt(b);
-        res.send(sum.toString());
-    });
-    app.get("/a5/subtract/:a/:b", (req, res) => {
-        const { a, b } = req.params;
-        const sum = parseInt(a) - parseInt(b);
-        res.send(sum.toString());
-    });
-
+    // Calculator operations
     app.get("/a5/calculator", (req, res) => {
         const { a, b, operation } = req.query;
         let result = 0;
@@ -146,7 +103,6 @@ const Lab5 = (app) => {
         }
         res.send(result.toString());
     });
-
-
 };
+
 export default Lab5;
